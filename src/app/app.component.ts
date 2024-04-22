@@ -1,30 +1,12 @@
-import {
-  Component,
-  OnInit,
-  ViewChild,
-  ElementRef,
-  AfterViewInit,
-  Input,
-  OnChanges,
-  SimpleChanges,
-  OnDestroy,
-  EventEmitter,
-  Output,
-} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import * as THREE from 'three';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-
-import { OBJLoader2 } from 'three/examples/jsm/loaders/OBJLoader2';
-import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader.js';
-import { MtlObjBridge } from 'three/examples/jsm/loaders/obj2/bridge/MtlObjBridge.js';
 
 @Component({
   selector: 'my-app',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
 })
-export class AppComponent implements OnInit, AfterViewInit {
+export class AppComponent implements OnInit {
   scene: any;
   camera: any;
   controls: any;
@@ -55,7 +37,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   dist = 0;
 
   ngOnInit() {
-    this.run();
     this.init();
     this.createLights();
     this.createFloor();
@@ -200,12 +181,246 @@ export class AppComponent implements OnInit, AfterViewInit {
   createLion() {
     this.lion = new this.Lion();
     this.scene.add(this.lion.threegroup);
+    this.Lion.prototype.updateBody = function (speed) {
+      this.head.rotation.y += (this.tHeagRotY - this.head.rotation.y) / speed;
+      this.head.rotation.x += (this.tHeadRotX - this.head.rotation.x) / speed;
+      this.head.position.x += (this.tHeadPosX - this.head.position.x) / speed;
+      this.head.position.y += (this.tHeadPosY - this.head.position.y) / speed;
+      this.head.position.z += (this.tHeadPosZ - this.head.position.z) / speed;
+
+      this.leftEye.scale.y +=
+        (this.tEyeScale - this.leftEye.scale.y) / (speed * 2);
+      this.rightEye.scale.y = this.leftEye.scale.y;
+
+      this.leftIris.scale.y +=
+        (this.tIrisYScale - this.leftIris.scale.y) / (speed * 2);
+      this.rightIris.scale.y = this.leftIris.scale.y;
+
+      this.leftIris.scale.z +=
+        (this.tIrisZScale - this.leftIris.scale.z) / (speed * 2);
+      this.rightIris.scale.z = this.leftIris.scale.z;
+
+      this.leftIris.position.y +=
+        (this.tIrisPosY - this.leftIris.position.y) / speed;
+      this.rightIris.position.y = this.leftIris.position.y;
+      this.leftIris.position.z +=
+        (this.tLeftIrisPosZ - this.leftIris.position.z) / speed;
+      this.rightIris.position.z +=
+        (this.tRightIrisPosZ - this.rightIris.position.z) / speed;
+
+      this.rightKnee.rotation.z +=
+        (this.tRightKneeRotZ - this.rightKnee.rotation.z) / speed;
+      this.leftKnee.rotation.z +=
+        (this.tLeftKneeRotZ - this.leftKnee.rotation.z) / speed;
+
+      this.lips.position.x += (this.tLipsPosX - this.lips.position.x) / speed;
+      this.lips.position.y += (this.tLipsPosY - this.lips.position.y) / speed;
+      this.smile.position.x +=
+        (this.tSmilePosX - this.smile.position.x) / speed;
+      this.mouth.position.z +=
+        (this.tMouthPosZ - this.mouth.position.z) / speed;
+      this.smile.position.z +=
+        (this.tSmilePosZ - this.smile.position.z) / speed;
+      this.smile.position.y +=
+        (this.tSmilePosY - this.smile.position.y) / speed;
+      this.smile.rotation.z +=
+        (this.tSmileRotZ - this.smile.rotation.z) / speed;
+    };
+
+    this.Lion.prototype.look = function (xTarget, yTarget) {
+      this.tHeagRotY = this.rule3(
+        xTarget,
+        -200,
+        200,
+        -Math.PI / 4,
+        Math.PI / 4
+      );
+      this.tHeadRotX = this.rule3(
+        yTarget,
+        -200,
+        200,
+        -Math.PI / 4,
+        Math.PI / 4
+      );
+      this.tHeadPosX = this.rule3(xTarget, -200, 200, 70, -70);
+      this.tHeadPosY = this.rule3(yTarget, -140, 260, 20, 100);
+      this.tHeadPosZ = 0;
+
+      this.tEyeScale = 1;
+      this.tIrisYScale = 1;
+      this.tIrisZScale = 1;
+      this.tIrisPosY = this.rule3(yTarget, -200, 200, 35, 15);
+      this.tLeftIrisPosZ = this.rule3(xTarget, -200, 200, 130, 110);
+      this.tRightIrisPosZ = this.rule3(xTarget, -200, 200, 110, 130);
+
+      this.tLipsPosX = 0;
+      this.tLipsPosY = -45;
+
+      this.tSmilePosX = 0;
+      this.tMouthPosZ = 174;
+      this.tSmilePosZ = 173;
+      this.tSmilePosY = -15;
+      this.tSmileRotZ = -Math.PI;
+
+      this.tRightKneeRotZ = this.rule3(
+        xTarget,
+        -200,
+        200,
+        0.3 - Math.PI / 8,
+        0.3 + Math.PI / 8
+      );
+      this.tLeftKneeRotZ = this.rule3(
+        xTarget,
+        -200,
+        200,
+        -0.3 - Math.PI / 8,
+        -0.3 + Math.PI / 8
+      );
+
+      this.updateBody(10);
+
+      this.mane.rotation.y = 0;
+      this.mane.rotation.x = 0;
+
+      for (var i = 0; i < this.maneParts.length; i++) {
+        var m = this.maneParts[i].mesh;
+        m.position.z = 0;
+        m.rotation.y = 0;
+      }
+
+      for (var i = 0; i < this.mustaches.length; i++) {
+        var m = this.mustaches[i];
+        m.rotation.y = 0;
+      }
+
+      for (var i = 0; i < this.bodyVertices.length; i++) {
+        var tvInit = this.bodyInitPositions[i];
+        var tv = this.body.geometry.vertices[this.bodyVertices[i]];
+        tv.x = tvInit.x + this.head.position.x;
+      }
+      this.body.geometry.verticesNeedUpdate = true;
+    };
+
+    this.Lion.prototype.cool = function (xTarget, yTarget, deltaTime) {
+      this.tHeagRotY = this.rule3(
+        xTarget,
+        -200,
+        200,
+        Math.PI / 4,
+        -Math.PI / 4
+      );
+      this.tHeadRotX = this.rule3(
+        yTarget,
+        -200,
+        200,
+        Math.PI / 4,
+        -Math.PI / 4
+      );
+      this.tHeadPosX = this.rule3(xTarget, -200, 200, -70, 70);
+      this.tHeadPosY = this.rule3(yTarget, -140, 260, 100, 20);
+      this.tHeadPosZ = 100;
+
+      this.tEyeScale = 0.1;
+      this.tIrisYScale = 0.1;
+      this.tIrisZScale = 3;
+
+      this.tIrisPosY = 20;
+      this.tLeftIrisPosZ = 120;
+      this.tRightIrisPosZ = 120;
+
+      this.tLipsPosX = this.rule3(xTarget, -200, 200, -15, 15);
+      this.tLipsPosY = this.rule3(yTarget, -200, 200, -45, -40);
+
+      this.tMouthPosZ = 168;
+      this.tSmilePosX = this.rule3(xTarget, -200, 200, -15, 15);
+      this.tSmilePosY = this.rule3(yTarget, -200, 200, -20, -8);
+      this.tSmilePosZ = 176;
+      this.tSmileRotZ = this.rule3(
+        xTarget,
+        -200,
+        200,
+        -Math.PI - 0.3,
+        -Math.PI + 0.3
+      );
+
+      this.tRightKneeRotZ = this.rule3(
+        xTarget,
+        -200,
+        200,
+        0.3 + Math.PI / 8,
+        0.3 - Math.PI / 8
+      );
+      this.tLeftKneeRotZ = this.rule3(
+        xTarget,
+        -200,
+        200,
+        -0.3 + Math.PI / 8,
+        -0.3 - Math.PI / 8
+      );
+
+      this.updateBody(10);
+
+      this.mane.rotation.y = -0.8 * this.head.rotation.y;
+      this.mane.rotation.x = -0.8 * this.head.rotation.x;
+
+      var dt = 20000 / (xTarget * xTarget + yTarget * yTarget);
+      dt = Math.max(Math.min(dt, 1), 0.5);
+      this.windTime += dt * deltaTime * 40;
+
+      for (var i = 0; i < this.maneParts.length; i++) {
+        var m = this.maneParts[i].mesh;
+        let amp = this.maneParts[i].amp;
+        var zOffset = this.maneParts[i].zOffset;
+        var periodOffset = this.maneParts[i].periodOffset;
+
+        m.position.z =
+          zOffset + Math.sin(this.windTime + periodOffset) * amp * dt * 2;
+      }
+
+      this.leftEar.rotation.x = ((Math.cos(this.windTime) * Math.PI) / 16) * dt;
+      this.rightEar.rotation.x =
+        ((-Math.cos(this.windTime) * Math.PI) / 16) * dt;
+
+      for (var i = 0; i < this.mustaches.length; i++) {
+        var m = this.mustaches[i];
+        let amp = i < 3 ? -Math.PI / 8 : Math.PI / 8;
+        m.rotation.y = amp + Math.cos(this.windTime + i) * dt * amp;
+      }
+
+      for (var i = 0; i < this.bodyVertices.length; i++) {
+        var tvInit = this.bodyInitPositions[i];
+        var tv = this.body.geometry.vertices[this.bodyVertices[i]];
+        tv.x = tvInit.x + this.head.position.x;
+      }
+      this.body.geometry.verticesNeedUpdate = true;
+    };
   }
 
   createFan() {
     this.fan = new this.Fan();
     this.fan.threegroup.position.z = 350;
     this.scene.add(this.fan.threegroup);
+
+    this.Fan.prototype.update = function (xTarget, yTarget, deltaTime) {
+      this.threegroup.lookAt(new THREE.Vector3(0, 80, 60));
+      this.tPosX = this.rule3(xTarget, -200, 200, -250, 250);
+      this.tPosY = this.rule3(yTarget, -200, 200, 250, -250);
+
+      this.threegroup.position.x +=
+        (this.tPosX - this.threegroup.position.x) * deltaTime * 4;
+      this.threegroup.position.y +=
+        (this.tPosY - this.threegroup.position.y) * deltaTime * 4;
+
+      this.targetSpeed = this.isBlowing ? 15 * deltaTime : 5 * deltaTime;
+      if (this.isBlowing && this.speed < this.targetSpeed) {
+        this.acc += 0.01 * deltaTime;
+        this.speed += this.acc;
+      } else if (!this.isBlowing) {
+        this.acc = 0;
+        this.speed *= Math.pow(0.4, deltaTime);
+      }
+      this.propeller.rotation.z += this.speed;
+    };
   }
 
   Fan = function () {
@@ -214,16 +429,13 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.acc = 0;
     this.redMat = new THREE.MeshLambertMaterial({
       color: 0xad3525,
-      shading: THREE.FlatShading,
     });
     this.greyMat = new THREE.MeshLambertMaterial({
       color: 0x653f4c,
-      shading: THREE.FlatShading,
     });
 
     this.yellowMat = new THREE.MeshLambertMaterial({
       color: 0xfdd276,
-      shading: THREE.FlatShading,
     });
 
     var coreGeom = new THREE.BoxGeometry(10, 10, 20);
@@ -264,36 +476,29 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.threegroup = new THREE.Group();
     this.yellowMat = new THREE.MeshLambertMaterial({
       color: 0xfdd276,
-      shading: THREE.FlatShading,
     });
     this.redMat = new THREE.MeshLambertMaterial({
       color: 0xad3525,
-      shading: THREE.FlatShading,
     });
 
     this.pinkMat = new THREE.MeshLambertMaterial({
       color: 0xe55d2b,
-      shading: THREE.FlatShading,
     });
 
     this.whiteMat = new THREE.MeshLambertMaterial({
       color: 0xffffff,
-      shading: THREE.FlatShading,
     });
 
     this.purpleMat = new THREE.MeshLambertMaterial({
       color: 0x451954,
-      shading: THREE.FlatShading,
     });
 
     this.greyMat = new THREE.MeshLambertMaterial({
       color: 0x653f4c,
-      shading: THREE.FlatShading,
     });
 
     this.blackMat = new THREE.MeshLambertMaterial({
       color: 0x302925,
-      shading: THREE.FlatShading,
     });
 
     var bodyGeom = new THREE.CylinderGeometry(30, 80, 140, 4);
@@ -319,6 +524,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.body.position.z = -60;
     this.body.position.y = -30;
     this.bodyVertices = [0, 1, 2, 3, 4, 10];
+    // this.bodyVertices = [0, 1, 2, 3, 4];
 
     for (var i = 0; i < this.bodyVertices.length; i++) {
       var tv = this.body.geometry.vertices[this.bodyVertices[i]];
@@ -575,243 +781,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       }
     });
   };
-
-  run() {
-    this.Fan.prototype.update = function (xTarget, yTarget, deltaTime) {
-      this.threegroup.lookAt(new THREE.Vector3(0, 80, 60));
-      this.tPosX = this.rule3(xTarget, -200, 200, -250, 250);
-      this.tPosY = this.rule3(yTarget, -200, 200, 250, -250);
-
-      this.threegroup.position.x +=
-        (this.tPosX - this.threegroup.position.x) * deltaTime * 4;
-      this.threegroup.position.y +=
-        (this.tPosY - this.threegroup.position.y) * deltaTime * 4;
-
-      this.targetSpeed = this.isBlowing ? 15 * deltaTime : 5 * deltaTime;
-      if (this.isBlowing && this.speed < this.targetSpeed) {
-        this.acc += 0.01 * deltaTime;
-        this.speed += this.acc;
-      } else if (!this.isBlowing) {
-        this.acc = 0;
-        this.speed *= Math.pow(0.4, deltaTime);
-      }
-      this.propeller.rotation.z += this.speed;
-    };
-
-    this.Lion.prototype.updateBody = function (speed) {
-      this.head.rotation.y += (this.tHeagRotY - this.head.rotation.y) / speed;
-      this.head.rotation.x += (this.tHeadRotX - this.head.rotation.x) / speed;
-      this.head.position.x += (this.tHeadPosX - this.head.position.x) / speed;
-      this.head.position.y += (this.tHeadPosY - this.head.position.y) / speed;
-      this.head.position.z += (this.tHeadPosZ - this.head.position.z) / speed;
-
-      this.leftEye.scale.y +=
-        (this.tEyeScale - this.leftEye.scale.y) / (speed * 2);
-      this.rightEye.scale.y = this.leftEye.scale.y;
-
-      this.leftIris.scale.y +=
-        (this.tIrisYScale - this.leftIris.scale.y) / (speed * 2);
-      this.rightIris.scale.y = this.leftIris.scale.y;
-
-      this.leftIris.scale.z +=
-        (this.tIrisZScale - this.leftIris.scale.z) / (speed * 2);
-      this.rightIris.scale.z = this.leftIris.scale.z;
-
-      this.leftIris.position.y +=
-        (this.tIrisPosY - this.leftIris.position.y) / speed;
-      this.rightIris.position.y = this.leftIris.position.y;
-      this.leftIris.position.z +=
-        (this.tLeftIrisPosZ - this.leftIris.position.z) / speed;
-      this.rightIris.position.z +=
-        (this.tRightIrisPosZ - this.rightIris.position.z) / speed;
-
-      this.rightKnee.rotation.z +=
-        (this.tRightKneeRotZ - this.rightKnee.rotation.z) / speed;
-      this.leftKnee.rotation.z +=
-        (this.tLeftKneeRotZ - this.leftKnee.rotation.z) / speed;
-
-      this.lips.position.x += (this.tLipsPosX - this.lips.position.x) / speed;
-      this.lips.position.y += (this.tLipsPosY - this.lips.position.y) / speed;
-      this.smile.position.x +=
-        (this.tSmilePosX - this.smile.position.x) / speed;
-      this.mouth.position.z +=
-        (this.tMouthPosZ - this.mouth.position.z) / speed;
-      this.smile.position.z +=
-        (this.tSmilePosZ - this.smile.position.z) / speed;
-      this.smile.position.y +=
-        (this.tSmilePosY - this.smile.position.y) / speed;
-      this.smile.rotation.z +=
-        (this.tSmileRotZ - this.smile.rotation.z) / speed;
-    };
-
-    this.Lion.prototype.look = function (xTarget, yTarget) {
-      this.tHeagRotY = this.rule3(
-        xTarget,
-        -200,
-        200,
-        -Math.PI / 4,
-        Math.PI / 4
-      );
-      this.tHeadRotX = this.rule3(
-        yTarget,
-        -200,
-        200,
-        -Math.PI / 4,
-        Math.PI / 4
-      );
-      this.tHeadPosX = this.rule3(xTarget, -200, 200, 70, -70);
-      this.tHeadPosY = this.rule3(yTarget, -140, 260, 20, 100);
-      this.tHeadPosZ = 0;
-
-      this.tEyeScale = 1;
-      this.tIrisYScale = 1;
-      this.tIrisZScale = 1;
-      this.tIrisPosY = this.rule3(yTarget, -200, 200, 35, 15);
-      this.tLeftIrisPosZ = this.rule3(xTarget, -200, 200, 130, 110);
-      this.tRightIrisPosZ = this.rule3(xTarget, -200, 200, 110, 130);
-
-      this.tLipsPosX = 0;
-      this.tLipsPosY = -45;
-
-      this.tSmilePosX = 0;
-      this.tMouthPosZ = 174;
-      this.tSmilePosZ = 173;
-      this.tSmilePosY = -15;
-      this.tSmileRotZ = -Math.PI;
-
-      this.tRightKneeRotZ = this.rule3(
-        xTarget,
-        -200,
-        200,
-        0.3 - Math.PI / 8,
-        0.3 + Math.PI / 8
-      );
-      this.tLeftKneeRotZ = this.rule3(
-        xTarget,
-        -200,
-        200,
-        -0.3 - Math.PI / 8,
-        -0.3 + Math.PI / 8
-      );
-
-      this.updateBody(10);
-
-      this.mane.rotation.y = 0;
-      this.mane.rotation.x = 0;
-
-      for (var i = 0; i < this.maneParts.length; i++) {
-        var m = this.maneParts[i].mesh;
-        m.position.z = 0;
-        m.rotation.y = 0;
-      }
-
-      for (var i = 0; i < this.mustaches.length; i++) {
-        var m = this.mustaches[i];
-        m.rotation.y = 0;
-      }
-
-      for (var i = 0; i < this.bodyVertices.length; i++) {
-        var tvInit = this.bodyInitPositions[i];
-        var tv = this.body.geometry.vertices[this.bodyVertices[i]];
-        tv.x = tvInit.x + this.head.position.x;
-      }
-      this.body.geometry.verticesNeedUpdate = true;
-    };
-
-    this.Lion.prototype.cool = function (xTarget, yTarget, deltaTime) {
-      this.tHeagRotY = this.rule3(
-        xTarget,
-        -200,
-        200,
-        Math.PI / 4,
-        -Math.PI / 4
-      );
-      this.tHeadRotX = this.rule3(
-        yTarget,
-        -200,
-        200,
-        Math.PI / 4,
-        -Math.PI / 4
-      );
-      this.tHeadPosX = this.rule3(xTarget, -200, 200, -70, 70);
-      this.tHeadPosY = this.rule3(yTarget, -140, 260, 100, 20);
-      this.tHeadPosZ = 100;
-
-      this.tEyeScale = 0.1;
-      this.tIrisYScale = 0.1;
-      this.tIrisZScale = 3;
-
-      this.tIrisPosY = 20;
-      this.tLeftIrisPosZ = 120;
-      this.tRightIrisPosZ = 120;
-
-      this.tLipsPosX = this.rule3(xTarget, -200, 200, -15, 15);
-      this.tLipsPosY = this.rule3(yTarget, -200, 200, -45, -40);
-
-      this.tMouthPosZ = 168;
-      this.tSmilePosX = this.rule3(xTarget, -200, 200, -15, 15);
-      this.tSmilePosY = this.rule3(yTarget, -200, 200, -20, -8);
-      this.tSmilePosZ = 176;
-      this.tSmileRotZ = this.rule3(
-        xTarget,
-        -200,
-        200,
-        -Math.PI - 0.3,
-        -Math.PI + 0.3
-      );
-
-      this.tRightKneeRotZ = this.rule3(
-        xTarget,
-        -200,
-        200,
-        0.3 + Math.PI / 8,
-        0.3 - Math.PI / 8
-      );
-      this.tLeftKneeRotZ = this.rule3(
-        xTarget,
-        -200,
-        200,
-        -0.3 + Math.PI / 8,
-        -0.3 - Math.PI / 8
-      );
-
-      this.updateBody(10);
-
-      this.mane.rotation.y = -0.8 * this.head.rotation.y;
-      this.mane.rotation.x = -0.8 * this.head.rotation.x;
-
-      var dt = 20000 / (xTarget * xTarget + yTarget * yTarget);
-      dt = Math.max(Math.min(dt, 1), 0.5);
-      this.windTime += dt * deltaTime * 40;
-
-      for (var i = 0; i < this.maneParts.length; i++) {
-        var m = this.maneParts[i].mesh;
-        let amp = this.maneParts[i].amp;
-        var zOffset = this.maneParts[i].zOffset;
-        var periodOffset = this.maneParts[i].periodOffset;
-
-        m.position.z =
-          zOffset + Math.sin(this.windTime + periodOffset) * amp * dt * 2;
-      }
-
-      this.leftEar.rotation.x = ((Math.cos(this.windTime) * Math.PI) / 16) * dt;
-      this.rightEar.rotation.x =
-        ((-Math.cos(this.windTime) * Math.PI) / 16) * dt;
-
-      for (var i = 0; i < this.mustaches.length; i++) {
-        var m = this.mustaches[i];
-        let amp = i < 3 ? -Math.PI / 8 : Math.PI / 8;
-        m.rotation.y = amp + Math.cos(this.windTime + i) * dt * amp;
-      }
-
-      for (var i = 0; i < this.bodyVertices.length; i++) {
-        var tvInit = this.bodyInitPositions[i];
-        var tv = this.body.geometry.vertices[this.bodyVertices[i]];
-        tv.x = tvInit.x + this.head.position.x;
-      }
-      this.body.geometry.verticesNeedUpdate = true;
-    };
-  }
 
   loop() {
     this.deltaTime = this.clock.getDelta();

@@ -14,7 +14,7 @@
     "rxjs": "^6.5.2",
     "zone.js": "^0.9.1",
     "three": "^0.108.0",
-    "@types/three": "^0.103.2",
+    "@types/three": "^0.103.2"
   },
   "scripts": {
     "ng": "ng",
